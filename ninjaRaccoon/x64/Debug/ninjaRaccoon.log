@@ -1,0 +1,23 @@
+﻿  Building 'ninjaRaccoon' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Debug\ninjaRaccoon.inf
+  Stamping [Version] section with DriverVer=05/22/2025,9.50.0.996
+  Driver.cpp
+  ninjaRaccoon.vcxproj -> C:\Users\localuser\source\repos\ninjaRaccoon\x64\Debug\ninjaRaccoon.sys
+  Done Adding Additional Store
+  Successfully signed: C:\Users\localuser\source\repos\ninjaRaccoon\x64\Debug\ninjaRaccoon.sys
+  
+  Driver is 'Universal'.
+  .........................
+  Signability test complete.
+  
+  Errors:
+  None
+  
+  Warnings:
+  None
+  
+  Catalog generation complete.
+  C:\Users\localuser\source\repos\ninjaRaccoon\x64\Debug\ninjaRaccoon\ninjaraccoon.cat
+  Done Adding Additional Store
+  Successfully signed: C:\Users\localuser\source\repos\ninjaRaccoon\x64\Debug\ninjaRaccoon\ninjaraccoon.cat
+  

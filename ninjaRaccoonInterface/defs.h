@@ -1,0 +1,16 @@
+#include <Windows.h>
+#include <stdio.h>
+
+#define IOCTL_REPLACE_TOKEN CTL_CODE(FILE_DEVICE_UNKNOWN, 0x921, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+#define IOCTL_KILL_PROCESS CTL_CODE(FILE_DEVICE_UNKNOWN, 0x922, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+
+#define DEVICE L"\\Device\\internalsRaccoon"
+#define LINK L"\\DosDevices\\internalsRaccoon"
+
+typedef struct {
+
+	DWORD32 target;
+	DWORD32 stealFrom;
+
+} REPLACE_TOKEN_INFO, * PREPLACE_TOKEN_INFO;
