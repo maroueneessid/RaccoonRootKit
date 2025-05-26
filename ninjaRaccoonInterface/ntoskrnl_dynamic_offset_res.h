@@ -106,12 +106,11 @@ union NtoskrnlOffsets {
     DWORD64 ar[_SUPPORTED_NTOSKRNL_OFFSETS_END];
 };
 
+
+
+
+// Contains all of resolved kernel struct offssets
 union NtoskrnlOffsets g_ntoskrnlOffsets;
-
-
-
-
-
 
 typedef DWORD ulittle32_t;
 

@@ -28,13 +28,18 @@ Examples:
 
 ### Notes ###
 
-- Disabling PPL is not yet implemented. will be very soon
 - Ntoskrnl.exe dynamic structure offset resolution code , picked from https://github.com/wavestone-cdt/EDRSandblast
 - To avoid , `Warning treated as Errors` during compilation of driver. Lower Warning Level from `W4` to `W3` . should be handled by solution file.
+
+### To Do ### 
+
+- Credential Guard.
 
 ### References ###
 
 - https://github.com/wavestone-cdt/EDRSandblast
 - https://www.exploit-db.com/exploits/37098
+- https://www.vergiliusproject.com/
+
 
 

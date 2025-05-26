@@ -1,0 +1,69 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B3E4F43C-42ED-8978-FC86-E0CDCD98E679}|ninjaRaccoon\\ninjaRaccoon.vcxproj|C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoon\\Driver.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B3E4F43C-42ED-8978-FC86-E0CDCD98E679}|ninjaRaccoon\\ninjaRaccoon.vcxproj|solutionrelative:ninjaRaccoon\\Driver.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{32333073-22EE-4831-BA49-5232553E8323}|ninjaRaccoonInterface\\ninjaRaccoonInterface.vcxproj|C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoonInterface\\ninjaRaccoonInterface.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{32333073-22EE-4831-BA49-5232553E8323}|ninjaRaccoonInterface\\ninjaRaccoonInterface.vcxproj|solutionrelative:ninjaRaccoonInterface\\ninjaRaccoonInterface.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3E4F43C-42ED-8978-FC86-E0CDCD98E679}|ninjaRaccoon\\ninjaRaccoon.vcxproj|C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoon\\defs.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B3E4F43C-42ED-8978-FC86-E0CDCD98E679}|ninjaRaccoon\\ninjaRaccoon.vcxproj|solutionrelative:ninjaRaccoon\\defs.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "defs.hpp",
+              "DocumentMoniker": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoon\\defs.hpp",
+              "RelativeDocumentMoniker": "ninjaRaccoon\\defs.hpp",
+              "ToolTip": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoon\\defs.hpp",
+              "RelativeToolTip": "ninjaRaccoon\\defs.hpp",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAAC8AAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-05-26T17:10:14.989Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Driver.cpp",
+              "DocumentMoniker": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoon\\Driver.cpp",
+              "RelativeDocumentMoniker": "ninjaRaccoon\\Driver.cpp",
+              "ToolTip": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoon\\Driver.cpp",
+              "RelativeToolTip": "ninjaRaccoon\\Driver.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGEAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-05-26T16:56:23.364Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ninjaRaccoonInterface.c",
+              "DocumentMoniker": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoonInterface\\ninjaRaccoonInterface.c",
+              "RelativeDocumentMoniker": "ninjaRaccoonInterface\\ninjaRaccoonInterface.c",
+              "ToolTip": "C:\\Users\\localuser\\source\\repos\\ninjaRaccoon\\ninjaRaccoonInterface\\ninjaRaccoonInterface.c",
+              "RelativeToolTip": "ninjaRaccoonInterface\\ninjaRaccoonInterface.c",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAJEAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2025-05-22T19:35:04.507Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

