@@ -7,6 +7,7 @@
 	- Downgraed any process to MEDIUM/LOW Integrity 
 	- Kill any process (one time kill).
 	- Disables LSASS "Protected Process Light" protection for dumping. Doesn't do the actual dumping.
+        - Disables Credential Guard. 
 
 ### Usage ###
 
