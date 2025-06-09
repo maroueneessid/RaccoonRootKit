@@ -12,9 +12,11 @@
 
 
 TCHAR g_ntoskrnlPath[MAX_PATH] = { 0 };
+TCHAR g_wdigestPath[MAX_PATH] = { 0 };
 
 
 union NtoskrnlOffsets g_ntoskrnlOffsets = { 0 };
+union WdigestOffsets g_wdigestOffsets = { 0 };
 
 VOID PE_read(PE* pe, LPCVOID address, SIZE_T size, PVOID buffer) {
     if (pe->isInAnotherAddressSpace) {
@@ -595,6 +597,39 @@ void LoadNtoskrnlOffsetsFromInternet(BOOL delete_pdb) {
     g_ntoskrnlOffsets.st.seCiCallbacks = GetSymbolOffset(sym_ctx, "SeCiCallbacks");
     UnloadSymbols(sym_ctx, delete_pdb);
 }
+
+
+// #####  WDIGEST.DLL cred guard variable resolution  ###########
+
+
+
+LPTSTR GetWdigestPath() {
+    if (_tcslen(g_wdigestPath) == 0) {
+        // Retrieves the system folder (eg C:\Windows\System32).
+        GetSystemDirectory(g_wdigestPath, _countof(g_wdigestPath));
+
+        // Compute ntoskrnl.exe path.
+        PathAppendW(g_wdigestPath, TEXT("\\wdigest.dll"));
+    }
+    return g_wdigestPath;
+}
+
+void LoadWdigestOffsetsFromInternet(BOOL delete_pdb) {
+    symbol_ctx* sym_ctx = LoadSymbolsFromImageFile(GetWdigestPath());
+    if (sym_ctx == NULL) {
+        return;
+    }
+
+    g_wdigestOffsets.s.g_fParameter_UseLogonCredential = GetSymbolOffset(sym_ctx, "g_fParameter_UseLogonCredential");
+    g_wdigestOffsets.s.g_IsCredGuardEnabled = GetSymbolOffset(sym_ctx, "g_IsCredGuardEnabled");
+
+    UnloadSymbols(sym_ctx, delete_pdb);
+
+
+ 
+
+}
+
 
 
 

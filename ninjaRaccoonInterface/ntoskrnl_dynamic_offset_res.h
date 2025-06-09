@@ -107,10 +107,18 @@ union NtoskrnlOffsets {
 };
 
 
+union WdigestOffsets {
+    struct {
+        DWORD64 g_IsCredGuardEnabled;
+        DWORD64 g_fParameter_UseLogonCredential;
+    } s;
+};
 
+//WDIGEST_OFFSETS wdigest_offsets = { 0 };
 
 // Contains all of resolved kernel struct offssets
 union NtoskrnlOffsets g_ntoskrnlOffsets;
+union WdigestOffsets g_wdigestOffsets;
 
 typedef DWORD ulittle32_t;
 
@@ -143,3 +151,4 @@ typedef struct PdbInfoStreamHeader_t {
 
 
 void LoadNtoskrnlOffsetsFromInternet(BOOL delete_pdb);
+void LoadWdigestOffsetsFromInternet(BOOL delete_pdb);
