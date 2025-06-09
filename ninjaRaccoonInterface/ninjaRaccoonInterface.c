@@ -143,6 +143,7 @@ void help() {
     printf("  -d <pid>    Downgrade privileges of the specified PID to match a low-integrity process (explorer.exe).\n");
     printf("  -k <pid>    Kill the process with the given PID.\n");
     printf("  -l          Unprotect LSASS (enables interaction or manipulation with LSASS).\n");
+    printf("  -credGuard  Disables Windows Credential Guard.\n");
     printf("\nExamples:\n");
     printf("  Program.exe -e 1234           Elevate process 1234\n");
     printf("  Program.exe -d 5678           Downgrade process 5678\n");
